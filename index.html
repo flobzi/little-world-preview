@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#f3ead8" />
+    <meta name="description" content="Little World — a cozy to-do list with a living miniature island that grows as you do." />
+    <link rel="icon" type="image/png" sizes="32x32" href="./brand/icon-32.png" />
+    <link rel="apple-touch-icon" href="./brand/icon-180.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <title>Little World</title>
+    <script type="module" crossorigin src="./assets/index-BFKUtoFr.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DZeRKXMb.css">
+  </head>
+  <body>
+    <div id="root"><div class="lw-pre" style="position:fixed;inset:0;display:grid;place-items:center;font:italic 16px Georgia,serif;color:#7a5a3c;background:#f3ead8;text-align:center"><div>Growing your little world…<br /><small id="lw-pre-step" style="font:11px system-ui,sans-serif;opacity:.6">loading code · 5407a6b 2026-10-26 00:44Z</small></div></div></div>
+    <script>
+      /* P0 boot watchdog, plain JS so it works even if the app bundle never runs or React is stuck:
+         10 s after page load without a first frame, always offer a way out. */
+      (function () {
+        var B = (window.__lwBoot = window.__lwBoot || { build: '5407a6b 2026-10-26 00:44Z', step: 'loading code', error: null, storage: 'pending', graphics: '', done: false, t0: 0 });
+        var LIMIT = 10000;
+        function err(m) { if (!B.done && !B.error) B.error = String(m).slice(0, 300); }
+        window.addEventListener('error', function (e) { err(e.message || (e.target && e.target.src ? 'failed to load ' + e.target.src : 'error')); }, true);
+        window.addEventListener('unhandledrejection', function (e) { var r = e.reason; err(r && r.message ? r.name + ': ' + r.message : r); });
+        function gl() {
+          try {
+            var c = document.createElement('canvas'), g = c.getContext('webgl2');
+            if (!g) return c.getContext('webgl') ? 'WebGL1 only' : 'no WebGL';
+            var x = g.getExtension('WEBGL_debug_renderer_info');
+            return 'WebGL2 ' + (x ? g.getParameter(x.UNMASKED_RENDERER_WEBGL) : g.getParameter(g.RENDERER));
+          } catch (e) { return 'WebGL probe failed: ' + e; }
+        }
+        function details() {
+          return ['build: ' + B.build, 'step: ' + B.step, 'error: ' + (B.error || '—'), 'storage: ' + B.storage, 'graphics: ' + (B.graphics || gl()),
+            'sinceLoad: ' + Math.round(performance.now()) + ' ms', 'url: ' + location.href, 'userAgent: ' + navigator.userAgent,
+            'screen: ' + screen.width + 'x' + screen.height + ' @' + (window.devicePixelRatio || 1), 'cores: ' + (navigator.hardwareConcurrency || '?'),
+            'indexedDB: ' + (typeof indexedDB === 'undefined' ? 'missing' : 'present')].join('\n');
+        }
+        function card() {
+          if (B.done || document.getElementById('lw-watchdog') || document.querySelector('.boot-trouble')) return;
+          var d = document.createElement('div');
+          d.id = 'lw-watchdog';
+          d.setAttribute('role', 'alertdialog');
+          d.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:rgba(243,234,216,.94);font:15px system-ui,sans-serif;color:#4a3b2c;padding:16px';
+          var btn = 'display:block;width:100%;margin:8px 0 0;padding:12px;border-radius:14px;border:1px solid #d9ccb4;background:#fffaf0;font:inherit;color:inherit';
+          d.innerHTML = '<div style="max-width:340px;width:100%;background:#fffdf8;border-radius:20px;padding:20px;box-shadow:0 8px 30px rgba(70,50,30,.18)">' +
+            '<h2 style="margin:0 0 6px;font:600 19px Georgia,serif">Your island is taking too long</h2>' +
+            '<p style="margin:0 0 10px;line-height:1.4">Nothing you did caused this. You can try again, start a fresh island (your tasks stay), or reset.</p>' +
+            '<p id="lw-wd-msg" style="margin:0 0 6px;font-size:12px;opacity:.75"></p>' +
+            '<button data-a="retry" style="' + btn + ';background:#7f9a6e;color:#fff;border-color:#7f9a6e">Try again</button>' +
+            '<button data-a="fresh" style="' + btn + '">Start fresh (keep my tasks)</button>' +
+            '<button data-a="reset" style="' + btn + '">Reset everything…</button>' +
+            '<button data-a="copy" style="' + btn + '">Copy details</button>' +
+            '<button data-a="wait" style="' + btn + ';border:0;background:none;opacity:.7">Keep waiting</button>' +
+            '<p style="margin:10px 0 0;font-size:11px;opacity:.6;word-break:break-word"><span id="lw-wd-step"></span> · ' + B.build + '</p></div>';
+          document.body.appendChild(d);
+          var msg = d.querySelector('#lw-wd-msg');
+          d.querySelector('#lw-wd-step').textContent = B.step + (B.error ? ' — ' + B.error : '');
+          function say(t) { msg.textContent = t; }
+          d.addEventListener('click', function (e) {
+            var a = e.target && e.target.getAttribute && e.target.getAttribute('data-a');
+            if (a === 'retry') location.reload();
+            if (a === 'wait') { d.remove(); setTimeout(card, LIMIT); }
+            if (a === 'copy') {
+              var t = details();
+              (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { say('Details copied.'); }, function () { window.prompt('Copy these details:', t); });
+            }
+            if (a === 'fresh') {
+              say('Starting a fresh island…');
+              var done = false, to = setTimeout(function () { if (!done) say("Storage isn't answering. Close other Little World tabs, then Try again, or use Reset."); }, 5000);
+              try {
+                var r = indexedDB.open('little-world');
+                r.onsuccess = function () {
+                  var db = r.result, names = ['worlds', 'events', 'days'].filter(function (n) { return db.objectStoreNames.contains(n); });
+                  if (!names.length) { done = true; db.close(); location.reload(); return; }
+                  var tx = db.transaction(names, 'readwrite');
+                  names.forEach(function (n) { tx.objectStore(n).clear(); });
+                  tx.oncomplete = function () { done = true; clearTimeout(to); db.close(); location.reload(); };
+                  tx.onerror = function () { say('Could not clear the island: ' + tx.error); };
+                };
+                r.onerror = function () { say('Storage error: ' + r.error); };
+                r.onblocked = function () { say('Close other Little World tabs first.'); };
+              } catch (x) { say('Storage unavailable: ' + x); }
+            }
+            if (a === 'reset') {
+              if (!window.confirm('Erase everything Little World saved on this device (tasks too)?')) return;
+              say('Erasing…');
+              try {
+                var q = indexedDB.deleteDatabase('little-world');
+                q.onsuccess = q.onerror = function () { location.reload(); };
+                q.onblocked = function () { say('Close other Little World tabs; reloading…'); setTimeout(function () { location.reload(); }, 2500); };
+              } catch (x) { location.reload(); }
+            }
+          });
+        }
+        function onStep() {
+          var s = document.getElementById('lw-wd-step');
+          if (s) s.textContent = B.step + (B.error ? ' — ' + B.error : '');
+          if (B.done) { var w = document.getElementById('lw-watchdog'); if (w) w.remove(); }
+        }
+        document.addEventListener('lw-boot', onStep);
+        setTimeout(card, Math.max(0, LIMIT - performance.now()));
+      })();
+    </script>
+  </body>
+</html>
